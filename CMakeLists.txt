@@ -162,14 +162,15 @@ include_directories(SYSTEM ${Z3_INCLUDES})
 #   Everything above this line is a general CMake template for SVF ecosystem projects.
 #   Everything below this line is specific to this project (user/application code).
 # ==============================================================================
-
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
+find_library(LGRAPH_CPP_CLIENT_LIBRARIES lgraph_client_cpp_rpc REQUIRED PATHS ${CMAKE_CURRENT_SOURCE_DIR}/x86Lib)
 # Define the primary (minimal) example using SVF as library in an executable
 add_executable(graphdb-wpa src/tools/WPA/wpa.cpp)
 
 # Only link against SVF; LLVM & Z3 dependencies are resolved internally
-target_link_libraries(graphdb-wpa PRIVATE ${llvm_libs} ${SVF_LIB} Threads::Threads)
+target_link_libraries(graphdb-wpa PRIVATE ${llvm_libs} ${SVF_LIB} ${LGRAPH_CPP_CLIENT_LIBRARIES} Threads::Threads)
 
 # Set the executable example to install to the local directory (as prefix)
 install(TARGETS graphdb-wpa RUNTIME DESTINATION bin)

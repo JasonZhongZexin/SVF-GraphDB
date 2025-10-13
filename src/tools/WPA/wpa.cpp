@@ -27,7 +27,6 @@
  */
 
 #include "SVF-LLVM/LLVMUtil.h"
-#include "SVF-LLVM/SVFIRBuilder.h"
 #include "WPA/WPAPass.h"
 #include "Util/CommandLine.h"
 #include "Util/Options.h"
@@ -49,7 +48,7 @@ int main(int argc, char** argv)
 
    if (Options::ReadFromDB())
     {
-        SVFIRBuilder builder;
+        GraphDBSVFIRBuilder builder;
         pag = builder.build();
         pag->setPagFromTXT("ReadFromDB");
     }
