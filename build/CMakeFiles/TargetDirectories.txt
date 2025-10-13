@@ -1,0 +1,11 @@
+/home/zexin/dev/svf/SVF-GraphDB/build/CMakeFiles/intrinsics_gen.dir
+/home/zexin/dev/svf/SVF-GraphDB/build/CMakeFiles/omp_gen.dir
+/home/zexin/dev/svf/SVF-GraphDB/build/CMakeFiles/acc_gen.dir
+/home/zexin/dev/svf/SVF-GraphDB/build/CMakeFiles/RISCVTargetParserTableGen.dir
+/home/zexin/dev/svf/SVF-GraphDB/build/CMakeFiles/graphdb-wpa.dir
+/home/zexin/dev/svf/SVF-GraphDB/build/CMakeFiles/edit_cache.dir
+/home/zexin/dev/svf/SVF-GraphDB/build/CMakeFiles/rebuild_cache.dir
+/home/zexin/dev/svf/SVF-GraphDB/build/CMakeFiles/list_install_components.dir
+/home/zexin/dev/svf/SVF-GraphDB/build/CMakeFiles/install.dir
+/home/zexin/dev/svf/SVF-GraphDB/build/CMakeFiles/install/local.dir
+/home/zexin/dev/svf/SVF-GraphDB/build/CMakeFiles/install/strip.dir
