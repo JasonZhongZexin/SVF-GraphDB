@@ -172,14 +172,23 @@ endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-find_library(LGRAPH_CPP_CLIENT_LIBRARIES lgraph_client_cpp_rpc REQUIRED PATHS ${CMAKE_CURRENT_SOURCE_DIR}/tugraph-lib/x86Lib)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/tugraph-lib/include)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+# find_library(LGRAPH_CPP_CLIENT_LIBRARIES lgraph_client_cpp_rpc REQUIRED PATHS ${CMAKE_CURRENT_SOURCE_DIR}/tugraph-lib/x86Lib)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/tugraph-lib/include)
+
 # Define the primary (minimal) example using SVF as library in an executable
 add_executable(graphdb-wpa src/tools/WPA/wpa.cpp)
 add_executable(graphdb-saber src/tools/SABER/saber.cpp)
 add_executable(graphdb-mta src/tools/MTA/mta.cpp)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(LGRAPH_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tugraph-lib/x86Lib)
+set(LGRAPH_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tugraph-lib/include)
+set(LGRAPH_CPP_CLIENT_LIBRARIES ${LGRAPH_LIB_DIR}/liblgraph_client_cpp_rpc.so)
+
+# add header for target 
+target_include_directories(graphdb-wpa PRIVATE ${LGRAPH_INCLUDE_DIR})
+target_include_directories(graphdb-saber PRIVATE ${LGRAPH_INCLUDE_DIR})
+target_include_directories(graphdb-mta PRIVATE ${LGRAPH_INCLUDE_DIR})
 # Only link against SVF; LLVM & Z3 dependencies are resolved internally
 target_link_libraries(graphdb-wpa PRIVATE ${llvm_libs} ${SVF_LIB} ${LGRAPH_CPP_CLIENT_LIBRARIES} Threads::Threads)
 target_link_libraries(graphdb-saber PRIVATE ${llvm_libs} ${SVF_LIB} ${LGRAPH_CPP_CLIENT_LIBRARIES} Threads::Threads)
