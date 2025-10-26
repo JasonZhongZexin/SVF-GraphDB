@@ -353,7 +353,12 @@ public:
         if (!properties)
             return "";
 
-        std::string sourceLocation = cJSON_GetObjectItem(properties, "source_loc")->valuestring;
+        cJSON* sourceLocationNode = cJSON_GetObjectItem(properties, "source_loc");
+        std::string sourceLocation = "";
+        if (nullptr != sourceLocationNode->valuestring)
+        {
+            sourceLocation = sourceLocationNode->valuestring;
+        }
 
         return sourceLocation.empty() ? "" : sourceLocation;
     }
