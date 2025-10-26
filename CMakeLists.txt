@@ -154,6 +154,13 @@ message(STATUS "Z3 STATUS:
 set(CMAKE_INSTALL_RPATH ${Z3_INCLUDES})
 link_libraries(${Z3_LIBRARIES})
 include_directories(SYSTEM ${Z3_INCLUDES})
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Test-Suite")
+    include(CTest)          
+    enable_testing()        
+    add_subdirectory(Test-Suite)
+else()
+    message(STATUS "No Test-Suite directory found, skipping tests.")
+endif()
 
 # ==============================================================================
 #                           SVF Ecosystem CMake Template
@@ -166,6 +173,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 find_library(LGRAPH_CPP_CLIENT_LIBRARIES lgraph_client_cpp_rpc REQUIRED PATHS ${CMAKE_CURRENT_SOURCE_DIR}/x86Lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # Define the primary (minimal) example using SVF as library in an executable
 add_executable(graphdb-wpa src/tools/WPA/wpa.cpp)
 

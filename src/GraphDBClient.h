@@ -96,6 +96,7 @@ public:
     void insertCHG2db(const CHGraph* chg);
     void insertCHNode2db(lgraph::RpcClient* connection, const CHNode* node, const std::string& dbname);
     void insertCHEdge2db(lgraph::RpcClient* connection, const CHEdge* edge, const std::string& dbname);
+    void updateCHNodes2ICFGNode(lgraph::RpcClient* connection, const std::string& dbname, const int icfgId, const std::string& dataStr, const std::string& fieldName);
     std::string getCHNodeInsertStmt(const CHNode* node);
     std::string getCHEdgeInsertStmt(const CHEdge* edge);
 
@@ -131,7 +132,7 @@ public:
     ICFG* buildICFGFromDB(lgraph::RpcClient* connection, const std::string& dbname, SVFIR* pag);
     /// ICFGNodes
     void readICFGNodesFromDB(lgraph::RpcClient* connection, const std::string& dbname, std::string nodeType, ICFG* icfg, SVFIR* pag);
-    ICFGNode* parseGlobalICFGNodeFromDBResult(const cJSON* node);
+    ICFGNode* parseGlobalICFGNodeFromDBResult(const cJSON* node, SVFIR* pag);
     ICFGNode* parseFunEntryICFGNodeFromDBResult(const cJSON* node, SVFIR* pag);
     ICFGNode* parseFunExitICFGNodeFromDBResult(const cJSON* node, SVFIR* pag);
     ICFGNode* parseRetICFGNodeFromDBResult(const cJSON* node, SVFIR* pag);
@@ -153,6 +154,15 @@ public:
     CallGraphEdge* parseCallGraphEdgeFromDB(const cJSON* edge, SVFIR* pag, CallGraph* callGraph);
     void readCallGraphNodesFromDB(lgraph::RpcClient* connection, const std::string& dbname, CallGraph* callGraph);
     void readCallGraphEdgesFromDB(lgraph::RpcClient* connection, const std::string& dbname, SVFIR* pag, CallGraph* callGraph);
+
+    /// read CHG from DB
+    CHGraph* buildCHGraphFromDB(lgraph::RpcClient* connection, const std::string& dbname, SVFIR* pag);
+    void readCHNodesFromDB(lgraph::RpcClient* connection, const std::string& dbname, CHGraph* chg, SVFIR* pag);
+    void readCHEdgesFromDB(lgraph::RpcClient* connection, const std::string& dbname, CHGraph* chg);
+    void parseCHNodeFromDB(const cJSON* node, CHGraph* chg, SVFIR* pag);
+    void createCHNode(CHNode* chNode, CHGraph* chg);
+    void updateCallNode2ClassesMap(const ICFGNode* icfgNode, Set<int> chNodeIds, CHGraph* chg);
+    void updateCallNode2CHAVtblsMap(const ICFGNode* icfgNode, Set<int> VTableSetIds, SVFIR* pag);
 
     /// read PAGNodes from DB
     void readPAGNodesFromDB(lgraph::RpcClient* connection, const std::string& dbname, std::string nodeType, SVFIR* pag);
@@ -380,6 +390,81 @@ public:
             }
         }
         return oss.str();
+    }
+
+    std::vector<std::vector<const FunObjVar*>> parseFuncVectorsFromString(const std::string& str, SVFIR* pag)
+    {
+        std::vector<std::vector<const FunObjVar*>> result;
+        size_t i = 0;
+
+        while (i < str.size())
+        {
+            // skip , and space
+            while (i < str.size() && (std::isspace(str[i]) || str[i] == ','))
+                ++i;
+
+            if (i >= str.size())
+                break;
+
+            if (str[i] != '{')
+            {
+                SVFUtil::outs()<<"Expected '{' at position " <<
+                                         std::to_string(i);
+            }
+            ++i; // skip '{'
+
+            std::vector<const FunObjVar*> vec;
+            std::string numStr;
+
+            while (i < str.size() && str[i] != '}')
+            {
+                if (std::isdigit(str[i]))
+                {
+                    numStr += str[i];
+                }
+                else if (str[i] == ',')
+                {
+                    if (!numStr.empty())
+                    {
+                        const SVFVar* var = pag->getGNode(std::stoi(numStr));
+                        const FunObjVar* funObjVar = SVFUtil::dyn_cast<FunObjVar>(var);
+                        if (nullptr != funObjVar)
+                            vec.push_back(funObjVar);
+                        else 
+                            SVFUtil::outs()<<"Warning: No FunObjVar found for id " << numStr;
+                        numStr.clear();
+                    }
+                }
+                else if (!std::isspace(str[i]))
+                {
+                    SVFUtil::outs()<<
+                        "Unexpected character in number: " <<
+                        std::string(1, str[i]);
+                }
+                ++i;
+            }
+
+            if (!numStr.empty())
+            {
+                const SVFVar* var = pag->getGNode(std::stoi(numStr));
+                const FunObjVar* funObjVar = SVFUtil::dyn_cast<FunObjVar>(var);
+                if (nullptr != funObjVar)
+                    vec.push_back(funObjVar);
+                else 
+                    SVFUtil::outs()<<"Warning: No FunObjVar found for id " << numStr;
+            }
+
+            if (i >= str.size() || str[i] != '}')
+            {
+                SVFUtil::outs()<<"Expected '}' at position " <<
+                                         std::to_string(i);
+            }
+            ++i; // skip '}'
+
+            result.push_back(vec);
+        }
+
+        return result;
     }
 
     template <typename Container>

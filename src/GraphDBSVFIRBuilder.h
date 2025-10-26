@@ -34,16 +34,16 @@ class GraphDBSVFIRBuilder : public SVFIRBuilder
         if (Options::ReadFromDB())
         {
             GraphDBClient::getInstance().readSVFTypesFromDB(dbConnection, "SVFType", pag);
-            GraphDBClient::getInstance().initialSVFPAGNodesFromDB(dbConnection, "PAG", pag);
+            GraphDBClient::getInstance().initialSVFPAGNodesFromDB(dbConnection, "PAG",pag);
             GraphDBClient::getInstance().readBasicBlockGraphFromDB(dbConnection, "BasicBlockGraph");
-            ICFG *icfg = GraphDBClient::getInstance().buildICFGFromDB(dbConnection, "ICFG", pag);
-            pag->setICFG(icfg);
-            CallGraph *callGraph = GraphDBClient::getInstance().buildCallGraphFromDB(dbConnection, "CallGraph", pag);
-            CHGraph *chg = new CHGraph();
+            CHGraph* chg = GraphDBClient::getInstance().buildCHGraphFromDB(dbConnection, "CHG", pag);
             pag->setCHG(chg);
-            pag->setCallGraph(callGraph);
+            ICFG* icfg = GraphDBClient::getInstance().buildICFGFromDB(dbConnection, "ICFG", pag);
+            pag->icfg = icfg;
+            CallGraph* callGraph = GraphDBClient::getInstance().buildCallGraphFromDB(dbConnection,"CallGraph",pag);
+            pag->callGraph = callGraph;
             GraphDBClient::getInstance().updatePAGNodesFromDB(dbConnection, "PAG", pag);
-            GraphDBClient::getInstance().loadSVFPAGEdgesFromDB(dbConnection, "PAG", pag);
+            GraphDBClient::getInstance().loadSVFPAGEdgesFromDB(dbConnection, "PAG",pag);
             GraphDBClient::getInstance().parseSVFStmtsForICFGNodeFromDBResult(pag);
             return pag;
         }
