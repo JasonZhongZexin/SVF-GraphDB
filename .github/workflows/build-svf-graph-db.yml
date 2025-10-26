@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       # checkout the repo
       - uses: actions/checkout@v2
@@ -46,6 +46,7 @@ jobs:
       - name: build-svf-graph-db
         run: |
          cd $GITHUB_WORKSPACE
+         export LLVM_DIR=$GITHUB_WORKSPACE/SVF-1/llvm-16.0.0.obj
          git clone https://github.com/SVF-tools/Test-Suite.git
          cmake -B build -S ./ -DSVF_DIR=$GITHUB_WORKSPACE/scratch_svf
          cmake --build build
