@@ -170,15 +170,16 @@ endif()
 #   Everything below this line is specific to this project (user/application code).
 # ==============================================================================
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+file(GLOB SVF_GRAPHDB_CORE "src/*.cpp")
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 # find_library(LGRAPH_CPP_CLIENT_LIBRARIES lgraph_client_cpp_rpc REQUIRED PATHS ${CMAKE_CURRENT_SOURCE_DIR}/tugraph-lib/x86Lib)
 # include_directories(${CMAKE_CURRENT_SOURCE_DIR}/tugraph-lib/include)
 
 # Define the primary (minimal) example using SVF as library in an executable
-add_executable(graphdb-wpa src/tools/WPA/wpa.cpp)
-add_executable(graphdb-saber src/tools/SABER/saber.cpp)
-add_executable(graphdb-mta src/tools/MTA/mta.cpp)
+add_executable(graphdb-wpa ${SVF_GRAPHDB_CORE} src/tools/WPA/wpa.cpp)
+add_executable(graphdb-saber ${SVF_GRAPHDB_CORE} src/tools/SABER/saber.cpp)
+add_executable(graphdb-mta ${SVF_GRAPHDB_CORE} src/tools/MTA/mta.cpp)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(LGRAPH_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tugraph-lib/x86Lib)
