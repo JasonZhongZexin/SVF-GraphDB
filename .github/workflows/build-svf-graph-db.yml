@@ -1,0 +1,64 @@
+name: svf-example
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      tugraph:
+        image: tugraph/tugraph-runtime-ubuntu18.04:latest
+        ports:
+          - 9090:9090 
+        options: >-
+          --health-cmd "curl -f http://localhost:9090 || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      # checkout the repo
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      # setup the environment
+      - name: build-svf-from-scratch
+        run: |
+         cd $GITHUB_WORKSPACE
+         git clone -b graph-db-final-v4 --single-branch https://github.com/JasonZhongZexin/SVF-1.git
+         cd SVF-1
+         source build.sh
+         cmake --install ./Release-build --prefix $GITHUB_WORKSPACE/scratch_svf
+
+      - name: download-lgraph-lib-based-on-architecture
+        run: |
+          cd $GITHUB_WORKSPACE
+          mkdir -p tugraph-lib
+          cd tugraph-lib
+          wget https://github.com/JasonZhongZexin/SVF-GraphDB/releases/download/v1.1/tugraph-lib-include.tar.gz
+          tar -xzvf tugraph-lib-include.tar.gz
+          ARCH=$(uname -m)
+          if [ "$ARCH" = "x86_64" ]; then
+            echo "Downloading x86_64 lib..."
+            curl -LO https://github.com/JasonZhongZexin/SVF-GraphDB/releases/download/v1.1/tugraph-lib-x86.tar.gz
+            tar -xzvf tugraph-lib-x86.tar.gz
+          elif [ "$ARCH" = "aarch64" ]; then
+            echo "Downloading ARM64 lib..."
+            curl -LO https://github.com/JasonZhongZexin/SVF-GraphDB/releases/download/v1.1/tugraph-lib-arm.tar.gz
+            tar -xzvf tugraph-lib-arm.tar.gz
+          else
+            echo "Unknown architecture: $ARCH"
+            exit 1
+          fi
+
+      - name: build-svf-graph-db
+        run: |
+         cd $GITHUB_WORKSPACE
+         git clone https://github.com/SVF-tools/Test-Suite.git
+         cmake -B build -S ./ -DSVF_DIR=$GITHUB_WORKSPACE/scratch_svf
+         cmake --build build
+    
+      
+
+         
