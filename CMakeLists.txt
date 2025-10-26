@@ -53,6 +53,7 @@ include(AddLLVM)
 # Add LLVM definitions to the compile options
 add_definitions(${LLVM_DEFINITIONS})
 include_directories(${LLVM_INCLUDE_DIRS})
+add_definitions(-DWORKSPACE_DIR=\"${CMAKE_SOURCE_DIR}\")
 
 # Abort configuration if LLVM is not found
 if(NOT "${LLVM_FOUND}")
@@ -154,13 +155,6 @@ message(STATUS "Z3 STATUS:
 set(CMAKE_INSTALL_RPATH ${Z3_INCLUDES})
 link_libraries(${Z3_LIBRARIES})
 include_directories(SYSTEM ${Z3_INCLUDES})
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Test-Suite")
-    include(CTest)          
-    enable_testing()        
-    add_subdirectory(Test-Suite)
-else()
-    message(STATUS "No Test-Suite directory found, skipping tests.")
-endif()
 
 # ==============================================================================
 #                           SVF Ecosystem CMake Template
@@ -170,15 +164,43 @@ endif()
 #   Everything below this line is specific to this project (user/application code).
 # ==============================================================================
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+file(GLOB SVF_GRAPHDB_CORE "src/*.cpp")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-find_library(LGRAPH_CPP_CLIENT_LIBRARIES lgraph_client_cpp_rpc REQUIRED PATHS ${CMAKE_CURRENT_SOURCE_DIR}/x86Lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-# Define the primary (minimal) example using SVF as library in an executable
-add_executable(graphdb-wpa src/tools/WPA/wpa.cpp)
+# find_library(LGRAPH_CPP_CLIENT_LIBRARIES lgraph_client_cpp_rpc REQUIRED PATHS ${CMAKE_CURRENT_SOURCE_DIR}/tugraph-lib/x86Lib)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/tugraph-lib/include)
 
+# Define the primary (minimal) example using SVF as library in an executable
+add_executable(graphdb-wpa ${SVF_GRAPHDB_CORE} src/tools/WPA/wpa.cpp)
+add_executable(graphdb-saber ${SVF_GRAPHDB_CORE} src/tools/SABER/saber.cpp)
+add_executable(graphdb-mta ${SVF_GRAPHDB_CORE} src/tools/MTA/mta.cpp)
+
+# add test suite if the Test-Suite directory exists
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Test-Suite")
+    include(CTest)          
+    enable_testing()        
+    add_subdirectory(Test-Suite)
+else()
+    message(STATUS "No Test-Suite directory found, skipping tests.")
+endif()
+
+set(LGRAPH_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tugraph-lib/x86Lib)
+set(LGRAPH_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tugraph-lib/include)
+set(LGRAPH_CPP_CLIENT_LIBRARIES ${LGRAPH_LIB_DIR}/liblgraph_client_cpp_rpc.so)
+
+# add header for target 
+target_include_directories(graphdb-wpa PRIVATE ${LGRAPH_INCLUDE_DIR})
+target_include_directories(graphdb-saber PRIVATE ${LGRAPH_INCLUDE_DIR})
+target_include_directories(graphdb-mta PRIVATE ${LGRAPH_INCLUDE_DIR})
 # Only link against SVF; LLVM & Z3 dependencies are resolved internally
 target_link_libraries(graphdb-wpa PRIVATE ${llvm_libs} ${SVF_LIB} ${LGRAPH_CPP_CLIENT_LIBRARIES} Threads::Threads)
+target_link_libraries(graphdb-saber PRIVATE ${llvm_libs} ${SVF_LIB} ${LGRAPH_CPP_CLIENT_LIBRARIES} Threads::Threads)
+target_link_libraries(graphdb-mta PRIVATE ${llvm_libs} ${SVF_LIB} ${LGRAPH_CPP_CLIENT_LIBRARIES} Threads::Threads)
 
 # Set the executable example to install to the local directory (as prefix)
 install(TARGETS graphdb-wpa RUNTIME DESTINATION bin)
+install(TARGETS graphdb-saber RUNTIME DESTINATION bin)
+install(TARGETS graphdb-mta RUNTIME DESTINATION bin)

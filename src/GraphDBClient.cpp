@@ -1,4 +1,4 @@
-#include "SVFIR/GraphDBClient.h"
+#include "GraphDBClient.h"
 #include "SVFIR/SVFVariables.h"
 
 using namespace SVF;
@@ -240,9 +240,9 @@ std::string GraphDBClient::getICFGNodeKindString(const ICFGNode* node)
 void GraphDBClient::insertCHG2db(const CHGraph* chg)
 {
     std::string chgNodePath =
-        SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/CHGNodeSchema.json";
+        std::string(WORKSPACE_DIR) +  "/src/DBSchema/CHGNodeSchema.json";
     std::string chgEdgePath =
-        SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/CHGEdgeSchema.json";
+        std::string(WORKSPACE_DIR) +  "/src/DBSchema/CHGEdgeSchema.json";
     // add all CHG Node & Edge to DB
     if (nullptr != connection)
     {
@@ -423,9 +423,9 @@ void GraphDBClient::insertICFG2db(const ICFG* icfg)
         createSubGraph(connection, "ICFG");
         // load schema for CallGraph
         std::string ICFGNodePath =
-            SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/ICFGNodeSchema.json";
+            std::string(WORKSPACE_DIR) +  "/src/DBSchema/ICFGNodeSchema.json";
         std::string ICFGEdgePath =
-            SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/ICFGEdgeSchema.json";
+            std::string(WORKSPACE_DIR) +  "/src/DBSchema/ICFGEdgeSchema.json";
         loadSchema(connection, ICFGNodePath.c_str(), "ICFG");
         loadSchema(connection, ICFGEdgePath.c_str(), "ICFG");
         std::vector<const ICFGEdge*> edges;
@@ -451,9 +451,9 @@ void GraphDBClient::insertCallGraph2db(const CallGraph* callGraph)
 {
 
     std::string callGraphNodePath =
-        SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/CallGraphNodeSchema.json";
+        std::string(WORKSPACE_DIR) +  "/src/DBSchema/CallGraphNodeSchema.json";
     std::string callGraphEdgePath =
-        SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/CallGraphEdgeSchema.json";
+        std::string(WORKSPACE_DIR) +  "/src/DBSchema/CallGraphEdgeSchema.json";
     // add all CallGraph Node & Edge to DB
     if (nullptr != connection)
     {
@@ -498,7 +498,7 @@ void GraphDBClient::insertSVFTypeNodeSet2db(const Set<const SVFType*>* types, co
         // create a new graph name SVFType in db
         createSubGraph(connection, "SVFType");
         // load schema for SVFType
-        loadSchema(connection, SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/SVFTypeNodeSchema.json", "SVFType");
+        loadSchema(connection, std::string(WORKSPACE_DIR) +  "/src/DBSchema/SVFTypeNodeSchema.json", "SVFType");
         
         // load & insert each svftype node to db
         for (const auto& ty : *types)
@@ -625,13 +625,13 @@ void GraphDBClient::insertBBNode2db(lgraph::RpcClient* connection, const SVFBasi
 void GraphDBClient::insertPAG2db(const PAG* pag)
 {
     std::string pagNodePath =
-        SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/PAGNodeSchema.json";
+        std::string(WORKSPACE_DIR) +  "/src/DBSchema/PAGNodeSchema.json";
     std::string pagEdgePath =
-        SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/PAGEdgeSchema.json";
+        std::string(WORKSPACE_DIR) +  "/src/DBSchema/PAGEdgeSchema.json";
     std::string bbNodePath =
-        SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/BasicBlockNodeSchema.json";
+        std::string(WORKSPACE_DIR) +  "/src/DBSchema/BasicBlockNodeSchema.json";
     std::string bbEdgePath =
-        SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/BasicBlockEdgeSchema.json";
+        std::string(WORKSPACE_DIR) +  "/src/DBSchema/BasicBlockEdgeSchema.json";
 
     // add all PAG Node & Edge to DB
     if (nullptr != connection)
@@ -2776,7 +2776,7 @@ void GraphDBClient::readPAGNodesFromDB(lgraph::RpcClient* connection, const std:
                 else if (nodeType == "ConstNullPtrObjVar")
                 {
                     ObjTypeInfo* objTypeInfo = parseObjTypeInfoFromDB(properties, pag);
-                    var = new ConstNullPtrObjVar(id, type, objTypeInfo, ObjVar::ConstNullptrObjNode);
+                    var = new ConstNullPtrObjVar(id, objTypeInfo, ObjVar::ConstNullptrObjNode);
                     pag->addBaseObjNode(SVFUtil::cast<ConstNullPtrObjVar>(var));
                     NodeIDAllocator::get()->increaseNumOfObjAndNodes();
                 }
@@ -2785,7 +2785,7 @@ void GraphDBClient::readPAGNodesFromDB(lgraph::RpcClient* connection, const std:
                     ObjTypeInfo* objTypeInfo = parseObjTypeInfoFromDB(properties, pag);
                     u64_t zval = std::stoull(cJSON_GetObjectItem(properties, "zval")->valuestring);
                     s64_t sval = cJSON_GetObjectItem(properties, "sval")->valueint;
-                    var = new ConstIntObjVar(id, sval, zval, type, objTypeInfo, ObjVar::ConstIntObjNode);
+                    var = new ConstIntObjVar(id, sval, zval, objTypeInfo, ObjVar::ConstIntObjNode);
                     pag->addBaseObjNode(SVFUtil::cast<ConstIntObjVar>(var));
                     NodeIDAllocator::get()->increaseNumOfObjAndNodes();
                 }
@@ -2793,35 +2793,35 @@ void GraphDBClient::readPAGNodesFromDB(lgraph::RpcClient* connection, const std:
                 {
                     ObjTypeInfo* objTypeInfo = parseObjTypeInfoFromDB(properties, pag);
                     float dval = (float)(cJSON_GetObjectItem(properties, "dval")->valuedouble);
-                    var = new ConstFPObjVar(id, dval, type, objTypeInfo, ObjVar::ConstFPObjNode);
+                    var = new ConstFPObjVar(id, dval, objTypeInfo, ObjVar::ConstFPObjNode);
                     pag->addBaseObjNode(SVFUtil::cast<ConstFPObjVar>(var));
                     NodeIDAllocator::get()->increaseNumOfObjAndNodes();
                 }
                 else if (nodeType == "ConstDataObjVar")
                 {
                     ObjTypeInfo* objTypeInfo = parseObjTypeInfoFromDB(properties, pag);
-                    var = new ConstDataObjVar(id, type, objTypeInfo, ObjVar::ConstDataObjNode);
+                    var = new ConstDataObjVar(id, objTypeInfo, ObjVar::ConstDataObjNode);
                     pag->addBaseObjNode(SVFUtil::cast<ConstDataObjVar>(var));
                     NodeIDAllocator::get()->increaseNumOfObjAndNodes();
                 }
                 else if (nodeType == "DummyObjVar")
                 {
                     ObjTypeInfo* objTypeInfo = parseObjTypeInfoFromDB(properties, pag);
-                    var = new DummyObjVar(id, type, objTypeInfo, ObjVar::DummyObjNode);
+                    var = new DummyObjVar(id, objTypeInfo, ObjVar::DummyObjNode);
                     pag->addDummyObjNode(SVFUtil::cast<DummyObjVar>(var));
                     NodeIDAllocator::get()->increaseNumOfObjAndNodes();
                 }
                 else if (nodeType == "ConstAggObjVar")
                 {
                     ObjTypeInfo* objTypeInfo = parseObjTypeInfoFromDB(properties, pag);
-                    var = new ConstAggObjVar(id, type, objTypeInfo, ObjVar::ConstAggObjNode);
+                    var = new ConstAggObjVar(id, objTypeInfo, ObjVar::ConstAggObjNode);
                     pag->addBaseObjNode(SVFUtil::cast<ConstAggObjVar>(var));
                     NodeIDAllocator::get()->increaseNumOfObjAndNodes();
                 }
                 else if (nodeType == "GlobalObjVar")
                 {
                     ObjTypeInfo* objTypeInfo = parseObjTypeInfoFromDB(properties, pag);
-                    var = new GlobalObjVar(id, type, objTypeInfo, ObjVar::GlobalObjNode);
+                    var = new GlobalObjVar(id, objTypeInfo, ObjVar::GlobalObjNode);
                     std::string val_name = cJSON_GetObjectItem(properties, "val_name")->valuestring;
                     if (!val_name.empty())
                     {
@@ -2841,7 +2841,7 @@ void GraphDBClient::readPAGNodesFromDB(lgraph::RpcClient* connection, const std:
                     bool sup_var_arg = cJSON_IsTrue(cJSON_GetObjectItem(properties, "sup_var_arg"));
                     int fun_type_id = cJSON_GetObjectItem(properties, "fun_type_id")->valueint;
                     const SVFFunctionType* funcType = SVFUtil::dyn_cast<SVFFunctionType>(pag->getSVFType(fun_type_id));
-                    var = new FunObjVar(id, type, objTypeInfo, is_decl, intrinsic, is_addr_taken, is_uncalled, is_not_return, sup_var_arg, funcType, ObjVar::FunObjNode);
+                    var = new FunObjVar(id, objTypeInfo, is_decl, intrinsic, is_addr_taken, is_uncalled, is_not_return, sup_var_arg, funcType, ObjVar::FunObjNode);
                     FunObjVar* funObjVar = SVFUtil::cast<FunObjVar>(var);
                     std::string func_annotation = cJSON_GetObjectItem(properties, "func_annotation")->valuestring;
                     if (!func_annotation.empty())
@@ -2879,21 +2879,21 @@ void GraphDBClient::readPAGNodesFromDB(lgraph::RpcClient* connection, const std:
                 else if (nodeType == "StackObjVar")
                 {
                     ObjTypeInfo* objTypeInfo = parseObjTypeInfoFromDB(properties, pag);
-                    var = new StackObjVar(id, type, objTypeInfo, ObjVar::StackObjNode);
+                    var = new StackObjVar(id, objTypeInfo, ObjVar::StackObjNode);
                     pag->addBaseObjNode(SVFUtil::cast<StackObjVar>(var));
                     NodeIDAllocator::get()->increaseNumOfObjAndNodes();
                 }
                 else if (nodeType == "HeapObjVar")
                 {
                     ObjTypeInfo* objTypeInfo = parseObjTypeInfoFromDB(properties, pag);
-                    var = new HeapObjVar(id, type, objTypeInfo, ObjVar::HeapObjNode);
+                    var = new HeapObjVar(id, objTypeInfo, ObjVar::HeapObjNode);
                     pag->addBaseObjNode(SVFUtil::cast<HeapObjVar>(var));
                     NodeIDAllocator::get()->increaseNumOfObjAndNodes();
                 }
                 else if (nodeType == "BaseObjVar")
                 {
                     ObjTypeInfo* objTypeInfo = parseObjTypeInfoFromDB(properties, pag);
-                    var = new BaseObjVar(id, type, objTypeInfo, ObjVar::BaseObjNode);
+                    var = new BaseObjVar(id, objTypeInfo, ObjVar::BaseObjNode);
                     pag->addBaseObjNode(SVFUtil::cast<BaseObjVar>(var));
                     NodeIDAllocator::get()->increaseNumOfObjAndNodes();
                 }
@@ -3336,12 +3336,20 @@ ICFGNode* GraphDBClient::parseFunEntryICFGNodeFromDBResult(const cJSON* node, SV
         }
     }
 
+    // if (nullptr != bb)
+    // {
+    //     bb->addICFGNode(icfgNode);
+    // }
+    // else
+    // {
+    //     SVFUtil::outs() << "Warning: [parseFunEntryICFGNodeFromDBResult] No matching BasicBlock found for id: " << bb_id << "\n";
+    // }
     std::string svfStmtIds = cJSON_GetObjectItem(properties, "pag_edge_ids")->valuestring;
     if (!svfStmtIds.empty())
     {
         icfgNode2StmtsStrMap[icfgNode] = svfStmtIds;
     }
-    
+
     cJSON* dataNode = cJSON_GetObjectItem(properties, "chnodes_ids");
     std::string chnodes_ids = "";
     if (nullptr != dataNode->valuestring)
@@ -3407,6 +3415,15 @@ ICFGNode* GraphDBClient::parseFunExitICFGNodeFromDBResult(const cJSON* node, SVF
         }
     }
 
+    // if (nullptr != bb)
+    // {
+    //     bb->addICFGNode(icfgNode);
+    // }
+    // else
+    // {
+    //     SVFUtil::outs() << "Warning: [parseFunExitICFGNodeFromDBResult] No matching BasicBlock found for id: " << bb_id << "\n";
+    // }
+
     std::string svfStmtIds = cJSON_GetObjectItem(properties, "pag_edge_ids")->valuestring;
     if (!svfStmtIds.empty())
     {
@@ -3467,6 +3484,16 @@ ICFGNode* GraphDBClient::parseIntraICFGNodeFromDBResult(const cJSON* node, SVFIR
 
     
     icfgNode = new IntraICFGNode(id, bb, funObjVar, is_return);
+
+    // // add this ICFGNode to its BasicBlock
+    // if (nullptr != bb)
+    // {
+    //     bb->addICFGNode(icfgNode);
+    // }
+    // else
+    // {
+    //     SVFUtil::outs() << "Warning: [parseIntraICFGNodeFromDBResult] No matching BasicBlock found for id: " << bb_id << "\n";
+    // }
     
     std::string svfStmtIds = cJSON_GetObjectItem(properties, "pag_edge_ids")->valuestring;
     if (!svfStmtIds.empty())
@@ -3550,6 +3577,16 @@ ICFGNode* GraphDBClient::parseRetICFGNodeFromDBResult(const cJSON* node, SVFIR* 
             SVFUtil::outs() << "Warning: [parseRetICFGNodeFromDBResult] No matching actualRet SVFVar found for id: " << actual_ret_node_id << "\n";
         }
     }
+
+    // // add this ICFGNode to its BasicBlock
+    // if (nullptr != bb)
+    // {
+    //     bb->addICFGNode(icfgNode);
+    // }
+    // else
+    // {
+    //     SVFUtil::outs() << "Warning: [parseRetICFGNodeFromDBResult] No matching BasicBlock found for id: " << bb_id << "\n";
+    // }
 
     std::string svfStmtIds = cJSON_GetObjectItem(properties, "pag_edge_ids")->valuestring;
     if (!svfStmtIds.empty())
@@ -3708,6 +3745,16 @@ ICFGNode* GraphDBClient::parseCallICFGNodeFromDBResult(const cJSON* node, SVFIR*
     {
         retICFGNode->addCallBlockNodeFromDB(icfgNode);
     }
+
+    // // add this ICFGNode to its BasicBlock
+    // if (nullptr != bb)
+    // {
+    //     bb->addICFGNode(icfgNode);
+    // }
+    // else
+    // {
+    //     SVFUtil::outs() << "Warning: [parseCallICFGNodeFromDBResult] No matching BasicBlock found for id: " << bb_id << "\n";
+    // }
     
     std::string svfStmtIds = cJSON_GetObjectItem(properties, "pag_edge_ids")->valuestring;
     if (!svfStmtIds.empty())
@@ -4200,7 +4247,7 @@ const std::string GraphDBClient::callGraphNode2DBString(const CallGraphNode* nod
 {
     const std::string queryStatement ="CREATE (n:CallGraphNode {id: " + std::to_string(node->getId()) +
                              ", fun_obj_var_id: " + std::to_string(node->getFunction()->getId()) + 
-                             node->sourceLocToDBString() +
+                             sourceLocToDBString(node) +
                              ", fun_name:'" + node->getName()+ "'"
                              "})";
     return queryStatement;
@@ -4301,7 +4348,7 @@ const std::string GraphDBClient::globalICFGNode2DBString(const GlobalICFGNode* n
     const std::string queryStatement ="CREATE (n:GlobalICFGNode {id: " + std::to_string(node->getId()) +
     ", kind: " + std::to_string(node->getNodeKind()) + 
     ", pag_edge_ids:'" + extractEdgesIds(node->getSVFStmts())  +"'"+
-    node->sourceLocToDBString() + "})";
+    sourceLocToDBString(node) + "})";
     return queryStatement;
 }
 
@@ -4313,7 +4360,7 @@ const std::string GraphDBClient::intraICFGNode2DBString(const IntraICFGNode* nod
     ", fun_obj_var_id:" + std::to_string(node->getFun()->getId()) +
     ", pag_edge_ids:'" + extractEdgesIds(node->getSVFStmts()) +"'" +
     ", bb_id:" + std::to_string(node->getBB()->getId()) + 
-    node->sourceLocToDBString() + "})";
+    sourceLocToDBString(node) + "})";
     return queryStatement;
 }
 
@@ -4322,7 +4369,7 @@ const std::string GraphDBClient::interICFGNode2DBString(const InterICFGNode* nod
     const std::string queryStatement ="CREATE (n:InterICFGNode {id: " + std::to_string(node->getId()) +
     ", kind: " + std::to_string(node->getNodeKind()) + 
     ", pag_edge_ids:'" + extractEdgesIds(node->getSVFStmts()) +"'"+
-    node->sourceLocToDBString() + "})";
+    sourceLocToDBString(node) + "})";
     return queryStatement;
 }
 
@@ -4334,7 +4381,7 @@ const std::string GraphDBClient::funEntryICFGNode2DBString(const FunEntryICFGNod
     ", pag_edge_ids:'" + extractEdgesIds(node->getSVFStmts()) +"'" +
     ", bb_id:" + std::to_string(node->getBB()->getId()) +
     ", fp_nodes:'" + extractNodesIds(node->getFormalParms()) +"'"+
-    node->sourceLocToDBString() + "})";
+    sourceLocToDBString(node) + "})";
     return queryStatement;
 }
 
@@ -4352,7 +4399,7 @@ const std::string GraphDBClient::funExitICFGNode2DBString(const FunExitICFGNode*
     ", fun_obj_var_id:" + std::to_string(node->getFun()->getId()) + 
     ", pag_edge_ids:'" + extractEdgesIds(node->getSVFStmts()) +"'" +
     ", bb_id:" + std::to_string(node->getBB()->getId()) +
-    formalRetId + node->sourceLocToDBString() + "})";
+    formalRetId + sourceLocToDBString(node) + "})";
     return queryStatement;
 }
 
@@ -4372,7 +4419,7 @@ const std::string GraphDBClient::retICFGNode2DBString(const RetICFGNode* node)
     ", bb_id: " + std::to_string(node->getBB()->getId()) +
     ", fun_obj_var_id: " + std::to_string(node->getFun()->getId()) +
     ", pag_edge_ids:'" + extractEdgesIds(node->getSVFStmts()) +"'" +
-    ", svf_type_id:" + std::to_string(node->getType()->getId()) + node->sourceLocToDBString() + "})";
+    ", svf_type_id:" + std::to_string(node->getType()->getId()) + sourceLocToDBString(node) + "})";
     return queryStatement;
 }
 
@@ -4431,7 +4478,7 @@ const std::string GraphDBClient::callICFGNode2DBString(const CallICFGNode* node)
     ", is_vararg: " + (node->isVarArg() ? "true" : "false") +
     ", is_vir_call_inst: " + (node->isVirtualCall() ? "true" : "false") +
     ", ind_fun_ptr_var_id:" + std::to_string(indFunPtrId) +
-    virtualFunAppendix+ node->sourceLocToDBString() +"})";
+    virtualFunAppendix+ sourceLocToDBString(node) +"})";
     return queryStatement;
 }
 

@@ -1,4 +1,4 @@
-//===- wpa.cpp -- Whole program analysis -------------------------------------//
+//===- saber.cpp -- Source-sink bug checker------------------------------------//
 //
 //                     SVF: Static Value-Flow Analysis
 //
@@ -21,38 +21,40 @@
 //===-----------------------------------------------------------------------===//
 
 /*
- // Whole Program Pointer Analysis
+ // Saber: Software Bug Check.
  //
  // Author: Yulei Sui,
  */
 
 #include "SVF-LLVM/LLVMUtil.h"
-#include "WPA/WPAPass.h"
+#include "GraphDBSVFIRBuilder.h"
+#include "SABER/LeakChecker.h"
+#include "SABER/FileChecker.h"
+#include "SABER/DoubleFreeChecker.h"
 #include "Util/CommandLine.h"
 #include "Util/Options.h"
-#include "GraphDBSVFIRBuilder.h"
+#include "Util/Z3Expr.h"
 
 
 using namespace llvm;
-using namespace std;
 using namespace SVF;
 
-int main(int argc, char** argv)
+int main(int argc, char ** argv)
 {
-    auto moduleNameVec =
-        OptionBase::parseOptions(argc, argv, "Whole Program Points-to Analysis",
-                                 "[options] <input-bitcode...>");
 
-    // Refers to content of a singleton unique_ptr<SVFIR> in SVFIR.
-    SVFIR* pag;
+    std::vector<std::string> moduleNameVec;
+    moduleNameVec = OptionBase::parseOptions(
+                        argc, argv, "Source-Sink Bug Detector", "[options] <input-bitcode...>"
+                    );
+
     GraphDBSVFIRBuilder builder;
+    SVFIR* pag;
 
-   if (Options::ReadFromDB())
+    if (Options::ReadFromDB())
     {
-        pag = builder.build();
         pag->setPagFromTXT("ReadFromDB");
-    }
-    else
+    } 
+    else 
     {
         if (Options::WriteAnder() == "ir_annotator")
         {
@@ -60,15 +62,25 @@ int main(int argc, char** argv)
         }
 
         LLVMModuleSet::buildSVFModule(moduleNameVec);
-
-        /// Build SVFIR
-        pag = builder.build();
-
     }
+    pag = builder.build();
 
-    WPAPass wpa;
-    wpa.runOnModule(pag);
 
+    std::unique_ptr<LeakChecker> saber;
+
+    if(Options::MemoryLeakCheck())
+        saber = std::make_unique<LeakChecker>();
+    else if(Options::FileCheck())
+        saber = std::make_unique<FileChecker>();
+    else if(Options::DFreeCheck())
+        saber = std::make_unique<DoubleFreeChecker>();
+    else
+        saber = std::make_unique<LeakChecker>();  // if no checker is specified, we use leak checker as the default one.
+
+    saber->runOnModule(pag);
     LLVMModuleSet::releaseLLVMModuleSet();
+
+
     return 0;
+
 }

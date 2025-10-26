@@ -39,7 +39,7 @@ private:
     GraphDBClient()
     {
         const char* url = "127.0.0.1:9090";
-        connection = new lgraph::RpcClient(url, "admin", "qazwsx123");
+        connection = new lgraph::RpcClient(url, "admin", "73@TuGraph");
     }
 
     ~GraphDBClient()
@@ -275,12 +275,13 @@ public:
     const std::string dummyObjVar2DBString(const DummyObjVar* var);
     const std::string getSVFVarNodeFieldsStmt(const SVFVar* var)
     {
+        std::string svf_type_id =  ", svf_type_id:"+ std::to_string(var->getType()->getId());
         std::string fieldsStr = "";
         fieldsStr += "id: " + std::to_string(var->getId()) + 
         ", svf_type_id:"+ std::to_string(var->getType()->getId()) +
         ", in_edge_kind_to_set_map:'" + pagEdgeToSetMapTyToString(var->getInEdgeKindToSetMap()) +
         "', out_edge_kind_to_set_map:'" + pagEdgeToSetMapTyToString(var->getOutEdgeKindToSetMap()) +
-        "'" + var->sourceLocToDBString();
+        "'" + sourceLocToDBString(var);
         return fieldsStr;
     }
 
@@ -353,12 +354,51 @@ public:
         if (!properties)
             return "";
 
-        std::string sourceLocation = cJSON_GetObjectItem(properties, "source_loc")->valuestring;
+        cJSON* sourceLocationNode = cJSON_GetObjectItem(properties, "source_loc");
+        std::string sourceLocation = "";
+        if (nullptr != sourceLocationNode->valuestring)
+        {
+            sourceLocation = sourceLocationNode->valuestring;
+        }
 
         return sourceLocation.empty() ? "" : sourceLocation;
     }
 
     ObjTypeInfo* parseObjTypeInfoFromDB(cJSON* properties, SVFIR* pag);
+
+    std::string sourceLocToDBString(const SVFVar* var) const
+    {
+        std::string sourceLocStr = ", source_loc:'";
+        if (!var->getSourceLoc().empty())
+        {
+            sourceLocStr += var->getSourceLoc();
+        }
+        sourceLocStr += "'";
+        return sourceLocStr;
+    }
+
+    std::string sourceLocToDBString(const ICFGNode* node) const
+    {
+        std::string sourceLocStr = ", source_loc:'";
+        if (!node->getSourceLoc().empty())
+        {
+            sourceLocStr += node->getSourceLoc();
+        }
+        sourceLocStr += "'";
+        return sourceLocStr;
+    }
+
+    std::string sourceLocToDBString(const CallGraphNode* node) const
+    {
+        std::string sourceLocStr = ", source_loc:'";
+        if (!node->getSourceLoc().empty())
+        {
+            sourceLocStr += node->getSourceLoc();
+        }
+        sourceLocStr += "'";
+        return sourceLocStr;
+    }
+
 
     template <typename Container>
     std::string extractNodesIds(const Container& nodes)

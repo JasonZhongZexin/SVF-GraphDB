@@ -1,8 +1,8 @@
-//===- wpa.cpp -- Whole program analysis -------------------------------------//
+//===- mta.cpp --Program Analysis for Multithreaded Programs------------------//
 //
 //                     SVF: Static Value-Flow Analysis
 //
-// Copyright (C) <2013-2017>  <Yulei Sui>
+// Copyright (C) <2013-2022>  <Yulei Sui>
 //
 
 // This program is free software: you can redistribute it and/or modify
@@ -18,57 +18,48 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-//===-----------------------------------------------------------------------===//
-
-/*
- // Whole Program Pointer Analysis
- //
- // Author: Yulei Sui,
- */
+//===----------------------------------------------------------------------===//
 
 #include "SVF-LLVM/LLVMUtil.h"
-#include "WPA/WPAPass.h"
+#include "GraphDBSVFIRBuilder.h"
+#include "MTA/MTA.h"
 #include "Util/CommandLine.h"
 #include "Util/Options.h"
-#include "GraphDBSVFIRBuilder.h"
-
 
 using namespace llvm;
 using namespace std;
 using namespace SVF;
 
-int main(int argc, char** argv)
+int main(int argc, char ** argv)
 {
-    auto moduleNameVec =
-        OptionBase::parseOptions(argc, argv, "Whole Program Points-to Analysis",
-                                 "[options] <input-bitcode...>");
 
-    // Refers to content of a singleton unique_ptr<SVFIR> in SVFIR.
-    SVFIR* pag;
+    std::vector<std::string> moduleNameVec;
+    moduleNameVec = OptionBase::parseOptions(
+                        argc, argv, "MTA Analysis", "[options] <input-bitcode...>"
+                    );
+
     GraphDBSVFIRBuilder builder;
-
-   if (Options::ReadFromDB())
+    SVFIR* pag;
+    if (Options::ReadFromDB())
     {
-        pag = builder.build();
         pag->setPagFromTXT("ReadFromDB");
     }
-    else
+    else 
     {
         if (Options::WriteAnder() == "ir_annotator")
         {
             LLVMModuleSet::preProcessBCs(moduleNameVec);
         }
-
         LLVMModuleSet::buildSVFModule(moduleNameVec);
-
-        /// Build SVFIR
-        pag = builder.build();
-
     }
+    pag = builder.build();
 
-    WPAPass wpa;
-    wpa.runOnModule(pag);
+
+    MTA mta;
+    mta.runOnModule(pag);
 
     LLVMModuleSet::releaseLLVMModuleSet();
+
+
     return 0;
 }
