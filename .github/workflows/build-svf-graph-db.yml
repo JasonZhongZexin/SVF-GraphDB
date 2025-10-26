@@ -25,8 +25,9 @@ jobs:
       - name: download-lgraph-lib-based-on-architecture
         run: |
           cd $GITHUB_WORKSPACE
-          mkdir -p tugraph-lib
+          mkdir tugraph-lib
           cd tugraph-lib
+          echo $pwd
           wget https://github.com/JasonZhongZexin/SVF-GraphDB/releases/download/v1.1/tugraph-lib-include.tar.gz
           tar -xzvf tugraph-lib-include.tar.gz
           ARCH=$(uname -m)
