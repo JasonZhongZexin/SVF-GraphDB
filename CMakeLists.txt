@@ -176,9 +176,12 @@ find_library(LGRAPH_CPP_CLIENT_LIBRARIES lgraph_client_cpp_rpc REQUIRED PATHS ${
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # Define the primary (minimal) example using SVF as library in an executable
 add_executable(graphdb-wpa src/tools/WPA/wpa.cpp)
+add_executable(graphdb-saber src/tools/SABER/saber.cpp)
 
 # Only link against SVF; LLVM & Z3 dependencies are resolved internally
 target_link_libraries(graphdb-wpa PRIVATE ${llvm_libs} ${SVF_LIB} ${LGRAPH_CPP_CLIENT_LIBRARIES} Threads::Threads)
+target_link_libraries(graphdb-saber PRIVATE ${llvm_libs} ${SVF_LIB} ${LGRAPH_CPP_CLIENT_LIBRARIES} Threads::Threads)
 
 # Set the executable example to install to the local directory (as prefix)
 install(TARGETS graphdb-wpa RUNTIME DESTINATION bin)
+install(TARGETS graphdb-saber RUNTIME DESTINATION bin)
