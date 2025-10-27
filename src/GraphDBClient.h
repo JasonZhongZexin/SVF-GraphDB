@@ -39,7 +39,7 @@ private:
     GraphDBClient()
     {
         const char* url = "127.0.0.1:9090";
-        connection = new lgraph::RpcClient(url, "admin", "qazwsx123");
+        connection = new lgraph::RpcClient(url, "admin", "73@TuGraph");
     }
 
     ~GraphDBClient()
