@@ -19,6 +19,7 @@ jobs:
          cd $GITHUB_WORKSPACE
          git clone -b graph-db-final-v4 --single-branch https://github.com/JasonZhongZexin/SVF-1.git
          cd SVF-1
+         git status
          source build.sh
          cmake --install ./Release-build --prefix $GITHUB_WORKSPACE/scratch_svf
 
@@ -51,7 +52,50 @@ jobs:
          git clone https://github.com/SVF-tools/Test-Suite.git
          cmake -B build -S ./ -DSVF_DIR=$GITHUB_WORKSPACE/scratch_svf
          cmake --build build
-    
+
+      - name: Pull TuGraph Docker image
+        run: |
+          docker pull tugraph/tugraph-runtime-ubuntu18.04:latest
+
+      - name: Start TuGraph container
+        run: |
+          docker run -d \
+            -p 7070:7070 \
+            -p 7687:7687 \
+            -p 9090:9090 \
+            -v ${{ github.workspace }}/tugraph_data:/var/lib/lgraph/data \
+            -v ${{ github.workspace }}/tugraph_log:/var/log/lgraph_log \
+            --name tugraph_db \
+            tugraph/tugraph-runtime-ubuntu18.04:latest
+      
+      - name: Start TuGraph server inside container
+        run: |
+          docker exec tugraph_db lgraph_server -c /usr/local/etc/lgraph.json -d restart
+
+      - name: Wait for TuGraph to start (max 10s)
+        run: |
+          echo "Waiting for TuGraph to be ready..."
+          for i in {1..10}; do
+            if curl -s http://127.0.0.1:7070 >/dev/null; then
+              echo "TuGraph is ready!"
+              exit 0
+            fi
+            echo "Still waiting ($i)..."
+            sleep 1
+          done
+          echo "TuGraph did not start in time."
+          docker logs tugraph_db
+          exit 1
+
+      - name: ctest graph-db wpa test
+        working-directory: ${{github.workspace}}/build
+        run:
+          ctest -R graphdb-wpa_tests -VV
+      
+      - name: ctest graph-db saber test
+        working-directory: ${{github.workspace}}/build
+        run:
+          ctest -R graphdb-saber_tests -VV
       
 
          
