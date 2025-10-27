@@ -45,10 +45,10 @@ int main(int argc, char** argv)
 
     // Refers to content of a singleton unique_ptr<SVFIR> in SVFIR.
     SVFIR* pag;
+    GraphDBSVFIRBuilder builder;
 
    if (Options::ReadFromDB())
     {
-        GraphDBSVFIRBuilder builder;
         pag = builder.build();
         pag->setPagFromTXT("ReadFromDB");
     }
@@ -62,7 +62,6 @@ int main(int argc, char** argv)
         LLVMModuleSet::buildSVFModule(moduleNameVec);
 
         /// Build SVFIR
-        SVFIRBuilder builder;
         pag = builder.build();
 
     }
