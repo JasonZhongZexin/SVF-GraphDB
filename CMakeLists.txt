@@ -53,6 +53,7 @@ include(AddLLVM)
 # Add LLVM definitions to the compile options
 add_definitions(${LLVM_DEFINITIONS})
 include_directories(${LLVM_INCLUDE_DIRS})
+add_definitions(-DWORKSPACE_DIR=\"${CMAKE_SOURCE_DIR}\")
 
 # Abort configuration if LLVM is not found
 if(NOT "${LLVM_FOUND}")
@@ -154,13 +155,6 @@ message(STATUS "Z3 STATUS:
 set(CMAKE_INSTALL_RPATH ${Z3_INCLUDES})
 link_libraries(${Z3_LIBRARIES})
 include_directories(SYSTEM ${Z3_INCLUDES})
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Test-Suite")
-    include(CTest)          
-    enable_testing()        
-    add_subdirectory(Test-Suite)
-else()
-    message(STATUS "No Test-Suite directory found, skipping tests.")
-endif()
 
 # ==============================================================================
 #                           SVF Ecosystem CMake Template
@@ -183,6 +177,15 @@ find_package(Threads REQUIRED)
 add_executable(graphdb-wpa ${SVF_GRAPHDB_CORE} src/tools/WPA/wpa.cpp)
 add_executable(graphdb-saber ${SVF_GRAPHDB_CORE} src/tools/SABER/saber.cpp)
 add_executable(graphdb-mta ${SVF_GRAPHDB_CORE} src/tools/MTA/mta.cpp)
+
+# add test suite if the Test-Suite directory exists
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Test-Suite")
+    include(CTest)          
+    enable_testing()        
+    add_subdirectory(Test-Suite)
+else()
+    message(STATUS "No Test-Suite directory found, skipping tests.")
+endif()
 
 set(LGRAPH_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tugraph-lib/x86Lib)
 set(LGRAPH_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tugraph-lib/include)

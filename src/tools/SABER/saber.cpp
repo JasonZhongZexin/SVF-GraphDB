@@ -27,7 +27,7 @@
  */
 
 #include "SVF-LLVM/LLVMUtil.h"
-#include "SVF-LLVM/SVFIRBuilder.h"
+#include "GraphDBSVFIRBuilder.h"
 #include "SABER/LeakChecker.h"
 #include "SABER/FileChecker.h"
 #include "SABER/DoubleFreeChecker.h"
@@ -47,7 +47,7 @@ int main(int argc, char ** argv)
                         argc, argv, "Source-Sink Bug Detector", "[options] <input-bitcode...>"
                     );
 
-    SVFIRBuilder builder;
+    GraphDBSVFIRBuilder builder;
     SVFIR* pag;
 
     if (Options::ReadFromDB())

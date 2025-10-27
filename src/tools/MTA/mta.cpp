@@ -21,7 +21,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "SVF-LLVM/LLVMUtil.h"
-#include "SVF-LLVM/SVFIRBuilder.h"
+#include "GraphDBSVFIRBuilder.h"
 #include "MTA/MTA.h"
 #include "Util/CommandLine.h"
 #include "Util/Options.h"
@@ -38,7 +38,7 @@ int main(int argc, char ** argv)
                         argc, argv, "MTA Analysis", "[options] <input-bitcode...>"
                     );
 
-    SVFIRBuilder builder;
+    GraphDBSVFIRBuilder builder;
     SVFIR* pag;
     if (Options::ReadFromDB())
     {

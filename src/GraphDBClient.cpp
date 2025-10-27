@@ -240,9 +240,9 @@ std::string GraphDBClient::getICFGNodeKindString(const ICFGNode* node)
 void GraphDBClient::insertCHG2db(const CHGraph* chg)
 {
     std::string chgNodePath =
-        SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/CHGNodeSchema.json";
+        std::string(WORKSPACE_DIR) +  "/src/DBSchema/CHGNodeSchema.json";
     std::string chgEdgePath =
-        SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/CHGEdgeSchema.json";
+        std::string(WORKSPACE_DIR) +  "/src/DBSchema/CHGEdgeSchema.json";
     // add all CHG Node & Edge to DB
     if (nullptr != connection)
     {
@@ -423,9 +423,9 @@ void GraphDBClient::insertICFG2db(const ICFG* icfg)
         createSubGraph(connection, "ICFG");
         // load schema for CallGraph
         std::string ICFGNodePath =
-            SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/ICFGNodeSchema.json";
+            std::string(WORKSPACE_DIR) +  "/src/DBSchema/ICFGNodeSchema.json";
         std::string ICFGEdgePath =
-            SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/ICFGEdgeSchema.json";
+            std::string(WORKSPACE_DIR) +  "/src/DBSchema/ICFGEdgeSchema.json";
         loadSchema(connection, ICFGNodePath.c_str(), "ICFG");
         loadSchema(connection, ICFGEdgePath.c_str(), "ICFG");
         std::vector<const ICFGEdge*> edges;
@@ -451,9 +451,9 @@ void GraphDBClient::insertCallGraph2db(const CallGraph* callGraph)
 {
 
     std::string callGraphNodePath =
-        SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/CallGraphNodeSchema.json";
+        std::string(WORKSPACE_DIR) +  "/src/DBSchema/CallGraphNodeSchema.json";
     std::string callGraphEdgePath =
-        SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/CallGraphEdgeSchema.json";
+        std::string(WORKSPACE_DIR) +  "/src/DBSchema/CallGraphEdgeSchema.json";
     // add all CallGraph Node & Edge to DB
     if (nullptr != connection)
     {
@@ -498,7 +498,7 @@ void GraphDBClient::insertSVFTypeNodeSet2db(const Set<const SVFType*>* types, co
         // create a new graph name SVFType in db
         createSubGraph(connection, "SVFType");
         // load schema for SVFType
-        loadSchema(connection, SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/SVFTypeNodeSchema.json", "SVFType");
+        loadSchema(connection, std::string(WORKSPACE_DIR) +  "/src/DBSchema/SVFTypeNodeSchema.json", "SVFType");
         
         // load & insert each svftype node to db
         for (const auto& ty : *types)
@@ -625,13 +625,13 @@ void GraphDBClient::insertBBNode2db(lgraph::RpcClient* connection, const SVFBasi
 void GraphDBClient::insertPAG2db(const PAG* pag)
 {
     std::string pagNodePath =
-        SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/PAGNodeSchema.json";
+        std::string(WORKSPACE_DIR) +  "/src/DBSchema/PAGNodeSchema.json";
     std::string pagEdgePath =
-        SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/PAGEdgeSchema.json";
+        std::string(WORKSPACE_DIR) +  "/src/DBSchema/PAGEdgeSchema.json";
     std::string bbNodePath =
-        SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/BasicBlockNodeSchema.json";
+        std::string(WORKSPACE_DIR) +  "/src/DBSchema/BasicBlockNodeSchema.json";
     std::string bbEdgePath =
-        SVF_SOURCE_DIR "/svf/include/Graphs/DBSchema/BasicBlockEdgeSchema.json";
+        std::string(WORKSPACE_DIR) +  "/src/DBSchema/BasicBlockEdgeSchema.json";
 
     // add all PAG Node & Edge to DB
     if (nullptr != connection)
