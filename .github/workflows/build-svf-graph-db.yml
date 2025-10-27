@@ -63,10 +63,10 @@ jobs:
             -p 7070:7070 \
             -p 7687:7687 \
             -p 9090:9090 \
-            -v ${{ github.workspace }}/tugraph_data:/var/lib/lgraph/data \
-            -v ${{ github.workspace }}/tugraph_log:/var/log/lgraph_log \
+            -v $GITHUB_WORKSPACE/tugraph_data:/var/lib/lgraph/data \
+            -v $GITHUB_WORKSPACE/tugraph_log:/var/log/lgraph_log \
             --name tugraph_db \
-            tugraph/tugraph-runtime-ubuntu18.04:latest
+            tugraph/tugraph-runtime-ubuntu18.04:latest tail -f /dev/null
       
       - name: Start TuGraph server inside container
         run: |
