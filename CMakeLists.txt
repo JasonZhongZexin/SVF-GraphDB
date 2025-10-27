@@ -169,6 +169,7 @@ endif()
 #   Everything above this line is a general CMake template for SVF ecosystem projects.
 #   Everything below this line is specific to this project (user/application code).
 # ==============================================================================
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 file(GLOB SVF_GRAPHDB_CORE "src/*.cpp" "src/*.h")
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
