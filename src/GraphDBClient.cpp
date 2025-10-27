@@ -1,4 +1,4 @@
-#include "SVFIR/GraphDBClient.h"
+#include "GraphDBClient.h"
 #include "SVFIR/SVFVariables.h"
 
 using namespace SVF;
