@@ -275,6 +275,9 @@ public:
     const std::string dummyObjVar2DBString(const DummyObjVar* var);
     const std::string getSVFVarNodeFieldsStmt(const SVFVar* var)
     {
+        std::string svf_type_id =  ", svf_type_id:"+ std::to_string(var->getType()->getId());
+        if (SVFUtil::isa<BaseObjVar>(var))
+            svf_type_id = ", svf_type_id:"+ std::to_string(var->getVarType()->getId());
         std::string fieldsStr = "";
         fieldsStr += "id: " + std::to_string(var->getId()) + 
         ", svf_type_id:"+ std::to_string(var->getType()->getId()) +
