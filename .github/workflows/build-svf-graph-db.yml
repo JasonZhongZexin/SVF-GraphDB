@@ -1,4 +1,4 @@
-name: svf-example
+name: svf-graphdb-lib
 
 on: [push, pull_request]
 
