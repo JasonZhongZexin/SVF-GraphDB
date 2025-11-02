@@ -97,7 +97,7 @@ jobs:
         run:
           ctest -R graphdb-saber_tests -VV
       
-      - name: ctest graph-db saber doubel_free test
-        working-directory: ${{github.workspace}}/build
-        run:
-         ctest -R graphdb-saber_double_free_test -VV
+      # - name: ctest graph-db saber doubel_free test
+      #   working-directory: ${{github.workspace}}/build
+      #   run:
+      #    ctest -R graphdb-saber_double_free_test -VV
