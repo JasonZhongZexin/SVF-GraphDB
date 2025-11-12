@@ -33,6 +33,7 @@
 #include "SABER/DoubleFreeChecker.h"
 #include "Util/CommandLine.h"
 #include "Util/Options.h"
+#include "DBOptions.h"
 #include "Util/Z3Expr.h"
 
 
@@ -50,7 +51,7 @@ int main(int argc, char ** argv)
     GraphDBSVFIRBuilder builder;
     SVFIR* pag;
 
-    if (Options::ReadFromDB())
+    if (SVF::ReadFromDB())
     {
         pag->setPagFromTXT("ReadFromDB");
     } 

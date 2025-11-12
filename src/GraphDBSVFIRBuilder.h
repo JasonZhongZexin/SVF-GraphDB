@@ -11,6 +11,7 @@
 #include "SVF-LLVM/LLVMLoopAnalysis.h"
 #include "SVF-LLVM/CHGBuilder.h"
 #include "GraphDBClient.h"
+#include "DBOptions.h"
 
 using namespace SVF;
 
@@ -30,7 +31,7 @@ namespace SVF
             double startTime = SVFStat::getClk(true);
 
             DBOUT(DGENERAL, outs() << pasMsg("\t Building SVFIR ...\n"));
-            if (Options::ReadFromDB())
+            if (SVF::ReadFromDB())
             {
                 GraphDBClient::getInstance().readSVFTypesFromDB(dbConnection, "SVFType", pag);
                 GraphDBClient::getInstance().initialSVFPAGNodesFromDB(dbConnection, "PAG", pag);
@@ -139,7 +140,7 @@ namespace SVF
 
             pag->setNodeNumAfterPAGBuild(pag->getTotalNodeNum());
 
-            if (Options::Write2DB())
+            if (SVF::Write2DB())
             {
                 std::string dbname = "SVFType";
                 GraphDBClient::getInstance().insertSVFTypeNodeSet2db(&pag->getSVFTypes(), &pag->getStInfos(), dbname);

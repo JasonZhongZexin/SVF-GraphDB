@@ -25,6 +25,7 @@
 #include "MTA/MTA.h"
 #include "Util/CommandLine.h"
 #include "Util/Options.h"
+#include "DBOptions.h"
 
 using namespace llvm;
 using namespace std;
@@ -40,7 +41,7 @@ int main(int argc, char ** argv)
 
     GraphDBSVFIRBuilder builder;
     SVFIR* pag;
-    if (Options::ReadFromDB())
+    if (SVF::ReadFromDB())
     {
         pag->setPagFromTXT("ReadFromDB");
     }

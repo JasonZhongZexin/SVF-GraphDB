@@ -1732,7 +1732,10 @@ void GraphDBClient::readPAGEdgesFromDB(lgraph::RpcClient* connection, const std:
                         }
                         phiStmt->setOpICFGNodeVec(opICFGNodes);
                     }  
-                    pag->addPhiStmt(phiStmt, srcNode, dstNode);
+                    if (!pag->phiNodeMap.count(dstNode))
+                    {
+                        pag->addPhiStmt(phiStmt, srcNode, dstNode);
+                    }
                 }
                 else if (edgeType == "SelectStmt")
                 {
@@ -1979,7 +1982,7 @@ void GraphDBClient::updateSVFValVarAtrributes(cJSON* properties, ValVar* var, SV
         ICFGNode* icfgNode = pag->getICFG()->getGNode(icfg_node_id);
         if (nullptr != icfgNode)
         {
-            var->updateSVFValVarFromDB(icfgNode);
+            var->setICFGNode(icfgNode);
         }
         else
         {
@@ -2808,7 +2811,13 @@ void GraphDBClient::readPAGNodesFromDB(lgraph::RpcClient* connection, const std:
                 {
                     ObjTypeInfo* objTypeInfo = parseObjTypeInfoFromDB(properties, pag);
                     var = new DummyObjVar(id, objTypeInfo, ObjVar::DummyObjNode);
-                    pag->addDummyObjNode(SVFUtil::cast<DummyObjVar>(var));
+                    DummyObjVar* dummyObjVar = SVFUtil::cast<DummyObjVar>(var);
+                    if (pag->idToObjTypeInfoMap().find(dummyObjVar->getId()) == pag->idToObjTypeInfoMap().end())
+                    {
+                        ObjTypeInfo* ti = dummyObjVar->getTypeInfo();
+                        pag->idToObjTypeInfoMap()[dummyObjVar->getId()] = ti;
+                    }
+                    pag->addDummyObjNode(dummyObjVar);
                     NodeIDAllocator::get()->increaseNumOfObjAndNodes();
                 }
                 else if (nodeType == "ConstAggObjVar")
@@ -3008,6 +3017,7 @@ void GraphDBClient::readBasicBlockNodesFromDB(lgraph::RpcClient* connection, con
                 SVFBasicBlock* bb = new SVFBasicBlock(bbId, funObjVar);
                 bb->setName(bb_name);
                 bbGraph->addBasicBlock(bb);
+                bbGraph->id++;
                 basicBlocks.insert(bb);
                 std::string allICFGNodeIds = cJSON_GetObjectItem(properties, "all_icfg_nodes_ids")->valuestring;
                 if (!allICFGNodeIds.empty())
@@ -3153,6 +3163,7 @@ void GraphDBClient::readICFGNodesFromDB(lgraph::RpcClient* connection, const std
                     if (nullptr != icfgNode)
                     {
                         icfg->addICFGNode(icfgNode);
+                        icfg->totalICFGNode++;
                     }
                 }
                 else if (nodeType == "FunEntryICFGNode")
@@ -3743,7 +3754,7 @@ ICFGNode* GraphDBClient::parseCallICFGNodeFromDBResult(const cJSON* node, SVFIR*
 
     if (retICFGNode != nullptr)
     {
-        retICFGNode->addCallBlockNodeFromDB(icfgNode);
+        retICFGNode->setCallBlockNode(icfgNode);
     }
 
     // // add this ICFGNode to its BasicBlock
@@ -4102,11 +4113,17 @@ void GraphDBClient::readCallGraphEdgesFromDB(lgraph::RpcClient* connection, cons
                 {
                     if (cgEdge->isDirectCallEdge())
                     {
-                        callGraph->addDirectCallGraphEdge(cgEdge);
+                        if(!callGraph->hasGraphEdge(cgEdge))
+                        {
+                            callGraph->addDirectCallGraphEdge(cgEdge);
+                        }
                     }
                     if (cgEdge->isIndirectCallEdge())
                     {
-                        callGraph->addIndirectCallGraphEdge(cgEdge);
+                        if (!callGraph->hasGraphEdge(cgEdge))
+                        {
+                            callGraph->addIndirectCallGraphEdge(cgEdge);
+                        }
                     }
                 }
                 skip += 1;
@@ -4195,7 +4212,14 @@ CallGraphEdge* GraphDBClient::parseCallGraphEdgeFromDB(const cJSON* edge, SVFIR*
         for (int directCallId : direct_call_set_ids)
         {
             CallICFGNode* node = SVFUtil::dyn_cast<CallICFGNode>(pag->getICFG()->getGNode(directCallId));
-            callGraph->addCallSite(node, node->getCalledFunction(), cgEdge->getCallSiteID());
+            const FunObjVar* callee = node->getCalledFunction();
+            std::pair<const CallICFGNode*, const FunObjVar*> newCS(std::make_pair(node, callee));
+            CallGraph::CallSiteToIdMap::const_iterator it = callGraph->csToIdMap.find(newCS);
+            if (it == callGraph->csToIdMap.end())
+            {
+                callGraph->addCallSite(node, callee, cgEdge->getCallSiteID(), newCS);
+                callGraph->totalCallSiteNum++;
+            }
             cgEdge->addDirectCallSite(node);
             callGraph->callinstToCallGraphEdgesMap[node].insert(cgEdge);
         }
@@ -4209,7 +4233,14 @@ CallGraphEdge* GraphDBClient::parseCallGraphEdgeFromDB(const cJSON* edge, SVFIR*
         {
             CallICFGNode* node = SVFUtil::dyn_cast<CallICFGNode>(pag->getICFG()->getGNode(indirectCallId));
             callGraph->numOfResolvedIndCallEdge++;
-            callGraph->addCallSite(node, node->getCalledFunction(), cgEdge->getCallSiteID());
+            const FunObjVar* callee = node->getCalledFunction();
+            std::pair<const CallICFGNode*, const FunObjVar*> newCS(std::make_pair(node, callee));
+            CallGraph::CallSiteToIdMap::const_iterator it = callGraph->csToIdMap.find(newCS);
+            if (it == callGraph->csToIdMap.end())
+            {
+                callGraph->addCallSite(node, callee, cgEdge->getCallSiteID(), newCS);
+                callGraph->totalCallSiteNum++;
+            }
             cgEdge->addInDirectCallSite(node);
             callGraph->callinstToCallGraphEdgesMap[node].insert(cgEdge);
         }

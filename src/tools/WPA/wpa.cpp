@@ -30,6 +30,7 @@
 #include "WPA/WPAPass.h"
 #include "Util/CommandLine.h"
 #include "Util/Options.h"
+#include "DBOptions.h"
 #include "GraphDBSVFIRBuilder.h"
 
 
@@ -47,7 +48,7 @@ int main(int argc, char** argv)
     SVFIR* pag;
     GraphDBSVFIRBuilder builder;
 
-   if (Options::ReadFromDB())
+   if (SVF::ReadFromDB())
     {
         pag = builder.build();
         pag->setPagFromTXT("ReadFromDB");
