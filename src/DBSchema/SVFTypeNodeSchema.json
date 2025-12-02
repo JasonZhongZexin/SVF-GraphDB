@@ -144,6 +144,12 @@
                     "type":"STRING",
                     "optional":false,
                     "index":false
+                },
+                {
+                    "name":"is_vararg",
+                    "type":"BOOL",
+                    "optional":false,
+                    "index":false
                 }
             ]
         },
