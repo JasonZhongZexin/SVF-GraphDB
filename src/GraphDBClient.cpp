@@ -1746,13 +1746,11 @@ void GraphDBClient::readPAGEdgesFromDB(lgraph::RpcClient* connection, const std:
                     std::vector<SVFVar*> opVarNodes;
                     std::string op_var_node_ids = cJSON_GetObjectItem(properties, "op_var_node_ids")->valuestring;
                     parseOpVarString(op_var_node_ids, pag, opVarNodes);
-                    stmt = new PhiStmt(srcNode, dstNode, edgeFlag, edge_id, value, icfgNode, opVarNodes);
-                    PhiStmt* phiStmt = SVFUtil::cast<PhiStmt>(stmt);
+                    std::vector<const ICFGNode*> opICFGNodes;
                     std::string op_icfg_nodes_ids = cJSON_GetObjectItem(properties, "op_icfg_nodes_ids")->valuestring;
                     if (!op_icfg_nodes_ids.empty())
                     {
                         std::vector<int> opICFGNodeIds = parseElements2Container<std::vector<int>>(op_icfg_nodes_ids);
-                        std::vector<const ICFGNode*> opICFGNodes;
                         for (int icfgNodeId : opICFGNodeIds)
                         {
                             ICFGNode* opICFGNode = pag->getICFG()->getGNode(icfgNodeId);
@@ -1765,8 +1763,13 @@ void GraphDBClient::readPAGEdgesFromDB(lgraph::RpcClient* connection, const std:
                                 SVFUtil::outs() << "Warning: [readPAGEdgesFromDB] No matching ICFGNode found for id: " << icfgNodeId << "\n";
                             }
                         }
-                        phiStmt->setOpICFGNodeVec(opICFGNodes);
-                    }  
+                    } 
+                    stmt = new PhiStmt(dstNode, opVarNodes, opICFGNodes);
+                    stmt->edgeId = edge_id;
+                    stmt->value = value;
+                    stmt->icfgNode = icfgNode;
+                    PhiStmt* phiStmt = SVFUtil::cast<PhiStmt>(stmt); 
+                    phiStmt->opVars = opVarNodes;
                     if (!pag->phiNodeMap.count(dstNode))
                     {
                         pag->addPhiStmt(phiStmt, srcNode, dstNode);
@@ -1779,8 +1782,12 @@ void GraphDBClient::readPAGEdgesFromDB(lgraph::RpcClient* connection, const std:
                     parseOpVarString(op_var_node_ids, pag, opVarNodes);
                     int condition_svf_var_node_id = cJSON_GetObjectItem(properties, "condition_svf_var_node_id")->valueint;
                     SVFVar* condition = pag->getGNode(condition_svf_var_node_id);
-                    stmt = new SelectStmt(srcNode, dstNode, edgeFlag, edge_id, condition, value, icfgNode, opVarNodes);
+                    stmt = new SelectStmt(dstNode, opVarNodes, condition);
+                    stmt->edgeId = edge_id;
+                    stmt->value = value;
+                    stmt->icfgNode = icfgNode;
                     SelectStmt* selectStmt = SVFUtil::cast<SelectStmt>(stmt);
+                    selectStmt->opVars = opVarNodes;
                     if (!pag->hasEdge(selectStmt, SVFStmt::Select))
                     {
                         pag->addSelectStmt(selectStmt, srcNode, dstNode);
@@ -1792,8 +1799,12 @@ void GraphDBClient::readPAGEdgesFromDB(lgraph::RpcClient* connection, const std:
                     std::string op_var_node_ids = cJSON_GetObjectItem(properties, "op_var_node_ids")->valuestring;
                     parseOpVarString(op_var_node_ids, pag, opVarNodes);
                     u32_t predicate = cJSON_GetObjectItem(properties, "predicate")->valueint;
-                    stmt = new CmpStmt(srcNode, dstNode, edgeFlag, edge_id, value, predicate, icfgNode, opVarNodes);
+                    stmt = new CmpStmt(dstNode, opVarNodes, predicate);
+                    stmt->edgeId = edge_id;
+                    stmt->value = value;
+                    stmt->icfgNode = icfgNode;
                     CmpStmt* cmpStmt = SVFUtil::cast<CmpStmt>(stmt);
+                    cmpStmt->opVars = opVarNodes;
                     if (!pag->hasEdge(cmpStmt, SVFStmt::Cmp))
                     {
                         pag->addCmpStmt(cmpStmt, srcNode, dstNode);
@@ -1806,8 +1817,12 @@ void GraphDBClient::readPAGEdgesFromDB(lgraph::RpcClient* connection, const std:
                     std::string op_var_node_ids = cJSON_GetObjectItem(properties, "op_var_node_ids")->valuestring;
                     parseOpVarString(op_var_node_ids, pag, opVarNodes);
                     u32_t op_code = cJSON_GetObjectItem(properties, "op_code")->valueint;
-                    stmt = new BinaryOPStmt(srcNode, dstNode, edgeFlag, edge_id, value, op_code, icfgNode, opVarNodes);
+                    stmt = new BinaryOPStmt(dstNode, opVarNodes, op_code);
+                    stmt->edgeId = edge_id;
+                    stmt->value = value;
+                    stmt->icfgNode = icfgNode;
                     BinaryOPStmt* binaryOpStmt = SVFUtil::cast<BinaryOPStmt>(stmt);
+                    binaryOpStmt->opVars = opVarNodes;
                     if (!pag->hasEdge(binaryOpStmt, SVFStmt::BinaryOp))
                     {
                         pag->addBinaryOPStmt(binaryOpStmt, srcNode, dstNode);
