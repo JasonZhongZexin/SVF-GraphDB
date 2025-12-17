@@ -1,0 +1,108 @@
+name: svf-graphdb-lib
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # checkout the repo
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      # setup the environment
+      - name: build-svf-from-scratch
+        run: |
+         cd $GITHUB_WORKSPACE
+         git clone https://github.com/SVF-tools/SVF.git
+         cd SVF
+         git status
+         source build.sh
+         cmake --install ./Release-build --prefix $GITHUB_WORKSPACE/scratch_svf
+
+      - name: download-lgraph-lib-based-on-architecture
+        run: |
+          cd $GITHUB_WORKSPACE
+          mkdir tugraph-lib
+          cd tugraph-lib
+          echo $pwd
+          wget https://github.com/SVF-tools/SVF-GraphDB/releases/download/initial/tugraph-lib-include.tar.gz
+          tar -xzvf tugraph-lib-include.tar.gz
+          ARCH=$(uname -m)
+          if [ "$ARCH" = "x86_64" ]; then
+            echo "Downloading x86_64 lib..."
+            curl -LO https://github.com/SVF-tools/SVF-GraphDB/releases/download/initial/tugraph-lib-x86.tar.gz
+            tar -xzvf tugraph-lib-x86.tar.gz
+          elif [ "$ARCH" = "aarch64" ]; then
+            echo "Downloading ARM64 lib..."
+            curl -LO https://github.com/SVF-tools/SVF-GraphDB/releases/download/initial/tugraph-lib-arm.tar.gz
+            tar -xzvf tugraph-lib-arm.tar.gz
+          else
+            echo "Unknown architecture: $ARCH"
+            exit 1
+          fi
+
+      - name: build-svf-graph-db
+        run: |
+         cd $GITHUB_WORKSPACE
+         export LLVM_DIR=$GITHUB_WORKSPACE/SVF/llvm-16.0.0.obj
+         git clone https://github.com/SVF-tools/Test-Suite.git
+         cmake -B build -S ./ -DSVF_DIR=$GITHUB_WORKSPACE/scratch_svf
+         cmake --build build
+
+      - name: Pull TuGraph Docker image
+        run: |
+          docker pull tugraph/tugraph-runtime-ubuntu18.04:latest
+
+      - name: Start TuGraph container
+        run: |
+          docker run -d \
+            -p 7070:7070 \
+            -p 7687:7687 \
+            -p 9090:9090 \
+            -v $GITHUB_WORKSPACE/tugraph_data:/var/lib/lgraph/data \
+            -v $GITHUB_WORKSPACE/tugraph_log:/var/log/lgraph_log \
+            --name tugraph_db \
+            tugraph/tugraph-runtime-ubuntu18.04:latest tail -f /dev/null
+      
+      - name: Start TuGraph server inside container
+        run: |
+          docker exec tugraph_db lgraph_server -c /usr/local/etc/lgraph.json -d restart
+
+      - name: Wait for TuGraph to start (max 10s)
+        run: |
+          echo "Waiting for TuGraph to be ready..."
+          for i in {1..10}; do
+            if curl -s http://127.0.0.1:7070 >/dev/null; then
+              echo "TuGraph is ready!"
+              exit 0
+            fi
+            echo "Still waiting ($i)..."
+            sleep 1
+          done
+          echo "TuGraph did not start in time."
+          docker logs tugraph_db
+          exit 1
+
+      - name: ctest -R objtype_tests
+        working-directory: ${{github.workspace}}/build
+        run:
+          ctest -R graphdb-saber_tests -VV
+          
+      - name: ctest graph-db wpa test
+        working-directory: ${{github.workspace}}/build
+        run:
+          ctest -R graphdb-wpa_tests -VV
+      
+      - name: ctest graph-db saber mem_leak test
+        working-directory: ${{github.workspace}}/build
+        run:
+          ctest -R graphdb-saber_tests -VV
+      
+      - name: ctest graph-db saber double_free test
+        working-directory: ${{github.workspace}}/build
+        run:
+         ctest -R graphdb-saber_double_free_test -VV

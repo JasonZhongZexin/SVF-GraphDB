@@ -1,0 +1,47 @@
+{
+    "schema": [
+        {
+            "label" : "CHNode",
+            "type" : "VERTEX",
+            "primary" : "id",
+            "properties" : [
+                {
+                    "name" : "id", 
+                    "type":"INT32",
+                    "optional":false,
+                    "index":true
+                },
+                {
+                    "name" : "class_name", 
+                    "type":"STRING",
+                    "optional":false,
+                    "index":false
+                },
+                {
+                    "name" : "vtable_id", 
+                    "type":"INT32",
+                    "optional":false,
+                    "index":false
+                },
+                {
+                    "name" : "flags", 
+                    "type":"INT64",
+                    "optional":false,
+                    "index":false
+                },
+                {
+                    "name" : "virtual_function_vectors", 
+                    "type":"STRING",
+                    "optional":false,
+                    "index":false
+                },
+                {
+                    "name":"source_loc",
+                    "type":"STRING",
+                    "optional":true,
+                    "index":false
+                }
+            ]
+        }
+    ]
+}
