@@ -17,8 +17,8 @@ jobs:
       - name: build-svf-from-scratch
         run: |
          cd $GITHUB_WORKSPACE
-         git clone -b graph-db-final-v5 --single-branch https://github.com/JasonZhongZexin/SVF-1.git
-         cd SVF-1
+         git clone https://github.com/SVF-tools/SVF.git
+         cd SVF
          git status
          source build.sh
          cmake --install ./Release-build --prefix $GITHUB_WORKSPACE/scratch_svf
@@ -29,16 +29,16 @@ jobs:
           mkdir tugraph-lib
           cd tugraph-lib
           echo $pwd
-          wget https://github.com/JasonZhongZexin/SVF-GraphDB/releases/download/v1.1/tugraph-lib-include.tar.gz
+          wget https://github.com/SVF-tools/SVF-GraphDB/releases/download/initial/tugraph-lib-include.tar.gz
           tar -xzvf tugraph-lib-include.tar.gz
           ARCH=$(uname -m)
           if [ "$ARCH" = "x86_64" ]; then
             echo "Downloading x86_64 lib..."
-            curl -LO https://github.com/JasonZhongZexin/SVF-GraphDB/releases/download/v1.1/tugraph-lib-x86.tar.gz
+            curl -LO https://github.com/SVF-tools/SVF-GraphDB/releases/download/initial/tugraph-lib-x86.tar.gz
             tar -xzvf tugraph-lib-x86.tar.gz
           elif [ "$ARCH" = "aarch64" ]; then
             echo "Downloading ARM64 lib..."
-            curl -LO https://github.com/JasonZhongZexin/SVF-GraphDB/releases/download/v1.1/tugraph-lib-arm.tar.gz
+            curl -LO https://github.com/SVF-tools/SVF-GraphDB/releases/download/initial/tugraph-lib-arm.tar.gz
             tar -xzvf tugraph-lib-arm.tar.gz
           else
             echo "Unknown architecture: $ARCH"
@@ -48,7 +48,7 @@ jobs:
       - name: build-svf-graph-db
         run: |
          cd $GITHUB_WORKSPACE
-         export LLVM_DIR=$GITHUB_WORKSPACE/SVF-1/llvm-16.0.0.obj
+         export LLVM_DIR=$GITHUB_WORKSPACE/SVF/llvm-16.0.0.obj
          git clone https://github.com/SVF-tools/Test-Suite.git
          cmake -B build -S ./ -DSVF_DIR=$GITHUB_WORKSPACE/scratch_svf
          cmake --build build
